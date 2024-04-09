@@ -1,0 +1,56 @@
+ADDRESS = '127.0.0.1'
+PORT = 10011
+
+PORT_SHIFT = 0
+
+# # MATH
+# SCALE = 1
+# # DATA TYPE
+# DTYPE = 'int'
+
+S0_ADDRESS = '127.0.0.1'
+# S0_ADDRESS = '10.170.37.233'
+# S0_ADDRESS = '192.168.3.18'
+# S0_ADDRESS = '192.168.3.15'
+S0_PORT = 7000 + PORT_SHIFT
+S0_client_port_to_S1 = 8000 + PORT_SHIFT
+S0_client_port_to_S2 = 9000 + PORT_SHIFT
+
+# S1_ADDRESS = '192.168.3.16'
+# S1_ADDRESS = '192.168.3.17'
+# S1_ADDRESS = '10.170.26.235'
+S1_ADDRESS = '127.0.0.1'
+S1_PORT = 17000 + PORT_SHIFT
+S1_client_port_to_S0 = 18000 + PORT_SHIFT
+S1_client_port_to_S2 = 19000 + PORT_SHIFT
+
+# S2_ADDRESS = '192.168.3.10'
+# S2_ADDRESS = '192.168.3.7'
+# S2_ADDRESS = '10.170.66.243'
+S2_ADDRESS = '127.0.0.1'
+S2_PORT = 27000 + PORT_SHIFT
+S2_client_port_to_S0 = 28000 + PORT_SHIFT
+S2_client_port_to_S1 = 29000 + PORT_SHIFT
+
+
+#
+# S0_ADDRESS = '169.254.70.34'
+# # S0_ADDRESS = '192.168.3.18'
+# # S0_ADDRESS = '192.168.3.15'
+# S0_PORT = 9000
+# S0_client_port_to_S1 = 8000
+# S0_client_port_to_S2 = 8001
+#
+# # S1_ADDRESS = '192.168.3.16'
+# # S1_ADDRESS = '192.168.3.17'
+# S1_ADDRESS = '169.254.0.31'
+# S1_PORT = 9001
+# S1_client_port_to_S0 = 8002
+# S1_client_port_to_S2 = 8003
+#
+# # S2_ADDRESS = '192.168.3.10'
+# # S2_ADDRESS = '192.168.3.7'
+# S2_ADDRESS = '169.254.99.34'
+# S2_PORT = 9002
+# S2_client_port_to_S0 = 8004
+# S2_client_port_to_S1 = 8005
