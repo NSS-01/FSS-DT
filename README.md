@@ -16,13 +16,6 @@ pip install -r requirements.txt
 ```
 
 ## Getting start
-
-All test codes needs to be run in the project root directory, as shown in the following example:
-
-    # Open two terminals and input the following code in each terminal:
-    python debug/application/neural_network/2pc/neural_network_server.py
-    python debug/application/neural_network/2pc/neural_network_client.py
-
 If you cannot start using the above command, try adding the following code to the beginning of the corresponding test file:
 
 ```python
