@@ -2,7 +2,7 @@
 
 # Introduction
 
-This is a temporary repository dedicated to review, which will be moved to our team's main library after the review is completed.
+This is a temporary repository dedicated to review, which will be moved to our team's main repository after the review is completed.
 # FSS-DT
 FSS-DT is implemented based on our team's MPCSensorLib, and its source code is stored in [application/Lightweiht_disition_tree](https://github.com/NSS-01/FSS-DT/tree/main/application/Lightweiht_disicion_tree)
 
