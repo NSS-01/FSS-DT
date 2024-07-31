@@ -46,12 +46,8 @@ The application package contains applications implemented using the functionalit
 The common package includes general utilities and the basic data structures used by this lib, such as network communication, random number generators, and other tools.
 - [config](config)   
 The config package includes the basic configuration and network configuration of MPCTensorLib.
-- [crypto](crypto)   
+- [crypto](crypto)  The crypto package is the core of the lib and includes the privacy computation primitives and protocols.
 - [tutorials](/)  
 The tutorials package contains the usage tutorials of MPCTensorLib.
-
-## Maintainers
-This project is maintained by the NSS Team at Xidian University.
-
 ## License
 MPCTensorLib is based on the MIT license, as described in LICENSE.
