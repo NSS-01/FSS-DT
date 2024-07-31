@@ -1,8 +1,10 @@
-# MPCTensorLib
+# FSS-DT
 
 ## Introduction
+The code of  FSS-DT is on [application/Lightweiht_disicion_tree](application/Lightweiht_disicion_tree).
+
 This project is a secure multi-party computation library that designs and implements privacy-preserving computation protocols based on arithmetic secret sharing and function secret sharing.
-It also utilizes these protocols to implement the application of privacy-preserving machine learning, specifically privacy-preserving neural network inference.
+It also utilizes these protocols to implement the application of privacy-preserving machine learning, specifically privacy-preserving neural network inference. 
 
 ## Installation tutorial
 This project requires PyTorch>=1.8.0, and it is recommended to use PyTorch==1.8.0.
@@ -38,25 +40,14 @@ conda install ipython jupyter
 6.Tutorial_5_Neural_Network_Inference.ipynb - This tutorial explains how to implement privacy-preserving neural network inference in this library.
 
 ## Architecture
-- [application](https://gitee.com/xdnss/mpctensorlib/tree/master/application)  
+- [application](application/Lightweiht_disicion_tree)  
 The application package contains applications implemented using the functionalities of MPCTensorLib. Currently, it supports automatic conversion of plaintext cipher models and privacy-preserving neural network inference.
-- [common](https://gitee.com/xdnss/mpctensorlib/tree/master/common)   
+- [common](common)   
 The common package includes general utilities and the basic data structures used by this lib, such as network communication, random number generators, and other tools.
-- [config](https://gitee.com/xdnss/mpctensorlib/tree/master/config)   
+- [config](config)   
 The config package includes the basic configuration and network configuration of MPCTensorLib.
-- [crypto](https://gitee.com/xdnss/mpctensorlib/tree/master/crypto)   
-The crypto package is the core of the lib and includes the privacy computation primitives and protocols.
-- [data](https://gitee.com/xdnss/mpctensorlib/tree/master/data)  
-The data package includes the auxiliary parameters used by the library for computation and the models and datasets used for privacy-preserving neural network inference.
-- [debug](https://gitee.com/xdnss/mpctensorlib/tree/master/debug)    
-The debug package includes the test code for the lib.
-- [model](https://gitee.com/xdnss/mpctensorlib/tree/master/model)  
-The model package includes system models and threat models used by the lib, such as the client-server model under semi-honest assumptions.
-- [tutorials](https://gitee.com/xdnss/mpctensorlib/tree/master/tutorials)  
+- [crypto](crypto)  The crypto package is the core of the lib and includes the privacy computation primitives and protocols.
+- [tutorials](/)  
 The tutorials package contains the usage tutorials of MPCTensorLib.
-
-## Maintainers
-This project is maintained by the NSS Team at Xidian University.
-
 ## License
 MPCTensorLib is based on the MIT license, as described in LICENSE.
