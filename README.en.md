@@ -1,8 +1,9 @@
 # FSS-DT
 
 ## Introduction
+The code of  FSS-DT is on [application/Lightweiht_disicion_tree](application/Lightweiht_disicion_tree)
 This project is a secure multi-party computation library that designs and implements privacy-preserving computation protocols based on arithmetic secret sharing and function secret sharing.
-It also utilizes these protocols to implement the application of privacy-preserving machine learning, specifically privacy-preserving neural network inference.
+It also utilizes these protocols to implement the application of privacy-preserving machine learning, specifically privacy-preserving neural network inference. 
 
 ## Installation tutorial
 This project requires PyTorch>=1.8.0, and it is recommended to use PyTorch==1.8.0.
@@ -38,7 +39,7 @@ conda install ipython jupyter
 6.Tutorial_5_Neural_Network_Inference.ipynb - This tutorial explains how to implement privacy-preserving neural network inference in this library.
 
 ## Architecture
-- [application](https://gitee.com/xdnss/mpctensorlib/tree/master/application)  
+- [application](application/Lightweiht_disicion_tree)  
 The application package contains applications implemented using the functionalities of MPCTensorLib. Currently, it supports automatic conversion of plaintext cipher models and privacy-preserving neural network inference.
 - [common](https://gitee.com/xdnss/mpctensorlib/tree/master/common)   
 The common package includes general utilities and the basic data structures used by this lib, such as network communication, random number generators, and other tools.
