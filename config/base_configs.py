@@ -8,8 +8,8 @@ LAMBDA = 128
 
 GE_TYPE = 'SIGMA'
 PRG_TYPE = 'AES'
-DEVICE = 'cuda'
-# DEVICE = 'cpu'
+#DEVICE = 'cuda'
+DEVICE = 'cpu'
 DEBUG = True
 # DEBUG = False
 
