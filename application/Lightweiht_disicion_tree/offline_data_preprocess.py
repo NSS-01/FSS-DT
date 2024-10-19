@@ -1,8 +1,15 @@
 # key gen:
+import os.path
+import warnings
+
+import torch
 from sklearn.compose import ColumnTransformer
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, load_digits, load_breast_cancer
 from sklearn.feature_selection import VarianceThreshold
-from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder, KBinsDiscretizer
+from ucimlrepo import fetch_ucirepo
+warnings.filterwarnings("ignore")
 
 from NssMPC.crypto.aux_parameter import *
 from NssMPC.crypto.aux_parameter.truncation_keys.rss_trunc_aux_param import RssTruncAuxParams
@@ -26,27 +33,56 @@ def gen_key():
     AssTruncAuxParams.gen_and_save(gen_num)
 
 def download_dataset():
-    import numpy as np
-    import torch
-    from sklearn.model_selection import train_test_split
-    from sklearn.datasets import load_iris, load_breast_cancer, load_wine, load_digits
-    from NssMPC.config import DEVICE
-    from ucimlrepo import fetch_ucirepo
-    from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder, KBinsDiscretizer
-    '''iris'''
+    "iris"
     iris = load_iris()
     X, y = iris.data, iris.target
-    '''breast_cancer'''
+    num_bins = 18
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=2023)
+
+    torch.save((X_train, X_test, y_train, y_test), './data/iris.pth')
+
+    "breast_cancer"
     breast_cancer = load_breast_cancer()
     X, y = breast_cancer.data, breast_cancer.target
+    num_bins = 4
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=2028)
+
+    torch.save((X_train, X_test, y_train, y_test), './data/breast_cancer.pth')
+
     "MNIST"
     mnist = load_digits()
     X, y = mnist.data, mnist.target
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=2020)
+    torch.save((X_train, X_test, y_train, y_test), './data/mnist.pth')
+
+    "heart_disease"
     heart_disease = fetch_ucirepo(id=45)
     X = heart_disease.data.features
     y = heart_disease.data.targets
+    X = X.dropna()  # Removes rows with any missing values in X
+    y = y.loc[X.index]  # Ensure y matches the cleaned X rows
     X = X.to_numpy()
     y = y.to_numpy()
+    num_bins = 12
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y == 0, test_size=0.2, random_state=2023)
+    torch.save((X_train, X_test, y_train, y_test), './data/heart_disease.pth')
+
     '''bank_marketing '''
     # fetch dataset
     bank_marketing = fetch_ucirepo(id=222)
@@ -67,7 +103,16 @@ def download_dataset():
             ('num', StandardScaler(), numerical_cols),  # 标准化数值型数据
             ('cat', OneHotEncoder(), categorical_cols)  # One-Hot 编码字符串数据
         ])
-    X_preprocessed = preprocessor.fit_transform(X)
+    X = preprocessor.fit_transform(X)
+    num_bins = 4
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=2023)
+    torch.save((X_train, X_test, y_train, y_test), './data/bank_marketing.pth')
+
     "skin"
     # fetch dataset
     skin_segmentation = fetch_ucirepo(id=229)
@@ -77,23 +122,30 @@ def download_dataset():
     y = skin_segmentation.data.targets
     X = X.to_numpy()
     y = y.to_numpy()
-    '''
-       covertype
-       '''
-    # # fetch dataset
-    covertype = fetch_ucirepo(id=31)
-
-    # data (as pandas dataframes)
-    X = covertype.data.features
-    y = covertype.data.targets
-    X = X.to_numpy()
-    y = y.to_numpy()
-    num_bins = 7
-    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy='uniform', subsample=10000)
+    num_bins = 8
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
     X = binner.fit_transform(X)
     # 使用 VarianceThreshold 移除常量特征
     selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
     X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y == 0, test_size=0.2, random_state=2031)
+    torch.save((X_train, X_test, y_train, y_test), './data/skin.pth')
+
+    "covertype"
+    # fetch dataset
+    covertype = fetch_ucirepo(id=31)
+    X = covertype.data.features
+    y = covertype.data.targets
+    X = X.to_numpy()
+    y = y.to_numpy()
+    num_bins = 16
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="quantile")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0.5)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=2021)
+    torch.save((X_train, X_test, y_train, y_test), './data/covertype.pth')
 
 
 # data processing
@@ -119,8 +171,8 @@ def config_dataset():
         client_data[:, 0:m0] = data[:, 0:m0]
         server_data = np.zeros(data.shape)
         server_data[:, m0:] = data[:, m0:]
-        server_data = torch.tensor(server_data)
-        client_data = torch.tensor(client_data)
+        server_data = torch.tensor(server_data,dtype=torch.int64)
+        client_data = torch.tensor(client_data,dtype=torch.int64)
 
         client_file_path= f'./data/{data_name}_client_data.pth'
         server_file_path= f'./data/{data_name}_server_data.pth'
@@ -130,7 +182,13 @@ def config_dataset():
     '''iris'''
     iris = load_iris()
     X, y = iris.data, iris.target
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=2023)
+    num_bins = 18
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=2023)
     data = np.hstack((X_train, y_train.reshape(-1, 1)))
     thresholds = unique_values_by_column(torch.tensor(data))
     m = len(data[0])
@@ -141,17 +199,20 @@ def config_dataset():
     client_data[:,0:m0]=data[:,0:m0]
     server_data = np.zeros(data.shape)
     server_data[:,m0:]=data[:,m0:]
-    client_data, server_data = torch.tensor(client_data, device=DEVICE), torch.tensor(server_data,
-                                                                       device=DEVICE)
+    client_data, server_data = torch.tensor(client_data, dtype=torch.int64), torch.tensor(server_data,
+                                                                       dtype=torch.int64)
     torch.save((m0,thresholds,client_data), './data/iris_client_data.pth')
     torch.save((m0,thresholds,server_data), './data/iris_server_data.pth')
-    m0, thresholds, server_data =torch.load('./data/iris_server_data.pth')
-    m0,thresholds,client_data  =torch.load('./data/iris_client_data.pth')
     '''breast_cancer'''
     breast_cancer = load_breast_cancer()
     X, y = breast_cancer.data, breast_cancer.target
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=2023)
+    num_bins = 4
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=2028)
     data = np.hstack((X_train, y_train.reshape(-1, 1)))
     thresholds = unique_values_by_column(torch.tensor(data))
 
@@ -163,20 +224,18 @@ def config_dataset():
     client_data[:, 0:m0] = data[:, 0:m0]
     server_data = np.zeros(data.shape)
     server_data[:, m0:] = data[:, m0:]
-    client_data, server_data = torch.tensor(client_data, device=DEVICE), torch.tensor(server_data,
-                                                                                      device=DEVICE)
+    client_data, server_data = torch.tensor(client_data, dtype=torch.int64), torch.tensor(server_data,
+                                                                                          dtype=torch.int64)
     torch.save((m0,thresholds,client_data),'./data/breast_cancer_client_data.pth')
     torch.save((m0,thresholds,server_data),'./data/breast_cancer_server_data.pth')
-    # data0 = torch.load('./data/breast_cancer_client_data.pth')
-    # data1 = torch.load('./data/breast_cancer_server_data.pth')
-    # print(data0,data1)
+
+
     "MNIST"
     mnist = load_digits()
     X, y = mnist.data, mnist.target
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=2023)
+        X, y, test_size=0.2, random_state=2020)
     data = np.hstack((X_train, y_train.reshape(-1, 1)))
-
     thresholds = unique_values_by_column(torch.tensor(data))
 
     m = len(data[0])
@@ -184,9 +243,11 @@ def config_dataset():
     # print(data[:, 0:m0])
     # print(data[:, m0:])
     client_data = np.zeros(data.shape)
-    client_data[:, 0:m0] = data[:, 0:m0]
+    client_data[:, 0:m0] = data[:,0:m0]
     server_data = np.zeros(data.shape)
     server_data[:, m0:] = data[:, m0:]
+    client_data, server_data = torch.tensor(client_data, dtype=torch.int64), torch.tensor(server_data,
+                                                                                          dtype=torch.int64)
     torch.save((m0,thresholds,client_data), './data/mnist_client_data.pth')
     torch.save((m0,thresholds,server_data), './data/mnist_server_data.pth')
 
@@ -194,15 +255,21 @@ def config_dataset():
     heart_disease = fetch_ucirepo(id=45)
     X = heart_disease.data.features
     y = heart_disease.data.targets
-    X =  X.to_numpy()
+    X = X.dropna()  # Removes rows with any missing values in X
+    y = y.loc[X.index]  # Ensure y matches the cleaned X rows
+    X = X.to_numpy()
     y = y.to_numpy()
-    X_train, X_test, y_train, y_test = train_test_split(X, y == 0, test_size=0.2, random_state=2023)
+    num_bins = 12
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y == 0, test_size=0.2, random_state=2023)
     data = np.hstack((X_train, y_train.reshape(-1, 1)))
     thresholds = unique_values_by_column(torch.tensor(data))
-    save(thresholds, data, 'bank_marketing')
-    # data0 = torch.load('./data/heart_disease_client_data.pth')
-    # data1 =torch.load('./data/heart_disease_server_data.pth')
-    # print(data1)
+    save(thresholds, data, 'heart_disease')
+
 
     '''bank_marketing '''
     # fetch dataset
@@ -214,7 +281,7 @@ def config_dataset():
     X = X.dropna()  # Removes rows with any missing values in X
     y = y.loc[X.index]  # Ensure y matches the cleaned X rows
     label_encoder = LabelEncoder()
-    y= label_encoder.fit_transform(y)
+    y = label_encoder.fit_transform(y)
     # Step 1: 找到分类变量（字符串）和数值变量的列
     categorical_cols = X.select_dtypes(include=['object']).columns
     # print(X[categorical_cols])
@@ -222,10 +289,16 @@ def config_dataset():
     preprocessor = ColumnTransformer(
         transformers=[
             ('num', StandardScaler(), numerical_cols),  # 标准化数值型数据
-            ('cat',  OneHotEncoder(), categorical_cols)  # One-Hot 编码字符串数据
+            ('cat', OneHotEncoder(), categorical_cols)  # One-Hot 编码字符串数据
         ])
-    X_preprocessed = preprocessor.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split( X_preprocessed, y, test_size=0.2, random_state=2023)
+    X = preprocessor.fit_transform(X)
+    num_bins = 4
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=2023)
     data = np.hstack((X_train, y_train.reshape(-1, 1)))
     thresholds = unique_values_by_column(torch.tensor(data))
     save(thresholds, data, 'bank_marketing')
@@ -242,36 +315,48 @@ def config_dataset():
     y = skin_segmentation.data.targets
     X = X.to_numpy()
     y = y.to_numpy()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=2023)
+    num_bins = 8
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+    X = binner.fit_transform(X)
+    # 使用 VarianceThreshold 移除常量特征
+    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    X_reduced = selector.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y == 0, test_size=0.2, random_state=2031)
 
     data = np.hstack((X_train, y_train.reshape(-1, 1)))
     thresholds = unique_values_by_column(torch.tensor(data))
     save(thresholds, data, 'skin_segmentation')
 
 
+
     '''
     covertype
     '''
-    # # fetch dataset
-    covertype = fetch_ucirepo(id=31)
 
-    # data (as pandas dataframes)
+    # fetch dataset
+    covertype = fetch_ucirepo(id=31)
     X = covertype.data.features
     y = covertype.data.targets
     X = X.to_numpy()
     y = y.to_numpy()
-    num_bins = 2
-    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy='uniform')
-    X= binner.fit_transform(X)
+    num_bins = 16
+    binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="quantile")
+    X = binner.fit_transform(X)
     # 使用 VarianceThreshold 移除常量特征
-    selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+    selector = VarianceThreshold(threshold=0.5)  # 0 表示移除方差为 0 的特征，即常量特征
     X_reduced = selector.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=2023)
+    X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=2021)
     data = np.hstack((X_train, y_train.reshape(-1, 1)))
     thresholds = unique_values_by_column(torch.tensor(data))
     save(thresholds,data,'covertype')
-    # data0 = torch.load('./data/covertype_client_data.pth')
-    # data1 = torch.load('./data/covertype_server_data.pth')
 if __name__ == '__main__':
+    from pathlib import Path
+    data_path = "./data"
+    model_path = "./model"
+    if not os.path.exists(data_path):
+        Path(data_path).mkdir(parents=True, exist_ok=True)
+    if not os.path.exists(model_path):
+        Path(model_path).mkdir(parents=True,exist_ok=True)
     gen_key()
+    download_dataset()
     config_dataset()

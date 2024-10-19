@@ -54,6 +54,7 @@ class Communicator:
 
     def close(self):
         self._close()
+
         print(f"Communicator: {self.address} closed.")
 
 class MCommunicator(Communicator):

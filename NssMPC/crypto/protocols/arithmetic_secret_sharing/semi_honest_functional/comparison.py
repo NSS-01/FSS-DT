@@ -1,12 +1,14 @@
+import time
+
 import math
 
 from NssMPC.crypto.aux_parameter import BooleanTriples, GrottoDICFKey, SigmaDICFKey, DICFKey
 
 from NssMPC import RingTensor
-from NssMPC.config import GE_TYPE, BIT_LEN, DEVICE
+from NssMPC.config import BIT_LEN, DEVICE
 from NssMPC.crypto.primitives.function_secret_sharing import *
 from NssMPC.crypto.protocols.arithmetic_secret_sharing.semi_honest_functional.b2a import b2a
-
+import NssMPC.config.configs as cfg
 
 def secure_eq(x, y):
     z = x - y
@@ -28,7 +30,7 @@ def secure_ge(x, y):
     Ge_TYPE.
     """
     ge_methods = {'MSB': msb_ge, 'DICF': dicf_ge, 'PPQ': ppq_ge, 'SIGMA': sigma_ge}
-    return ge_methods[GE_TYPE](x, y)
+    return ge_methods[cfg.GE_TYPE](x, y)
 
 
 def msb_ge(x, y):
@@ -115,6 +117,7 @@ def _int2bit(x, size: int):
     values = x.reshape(1, size).item
 
     arr = RingTensor.zeros(size=(size, BIT_LEN))
+
     for i in range(0, BIT_LEN):
         arr[:, i] = ((values >> i) & 0x01).reshape(1, size)
 
@@ -156,7 +159,7 @@ def _get_carry_bit(x, size: int) -> RingTensor:
     g_layer = g_layer1
 
     layer_total = int(math.log2(BIT_LEN))
-
+    time.sleep(1)
     for i in range(2, layer_total - 1):
         p_layer, g_layer = _get_p_and_g(p_layer, g_layer, x.party, BIT_LEN // (2 ** i), BIT_LEN // (2 ** (i + 1)),
                                         False)

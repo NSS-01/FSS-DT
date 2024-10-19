@@ -5,6 +5,8 @@ in secure two-party computing.
 The functions and definitions can refer to E. Boyle e.t.c. Function Secret Sharing for Mixed-Mode and Fixed-Point Secure Computation.2021
 https://link.springer.com/chapter/10.1007/978-3-030-77886-6_30
 """
+import time
+
 from NssMPC.common.ring import RingTensor
 from NssMPC.config.configs import PRG_TYPE, HALF_RING, data_type
 from NssMPC.crypto.aux_parameter.function_secret_sharing_keys.dicf_key import DICFKey, GrottoDICFKey, SigmaDICFKey
@@ -21,13 +23,13 @@ class DICF:
     def eval(x_shift, keys, party_id, down_bound=RingTensor(0), upper_bound=RingTensor(HALF_RING - 1)):
         p = down_bound
         q = upper_bound
-
         q1 = q + 1
 
         xp = (x_shift + (-1 - p))
         xq1 = (x_shift + (-1 - q1))
 
         s_p = DCF.eval(xp, keys.dcf_key, party_id, prg_type=PRG_TYPE)
+        time.sleep(0.1)
         s_q = DCF.eval(xq1, keys.dcf_key, party_id, prg_type=PRG_TYPE)
 
         res = party_id * (((x_shift > p) + 0) - ((x_shift > q1) + 0)) - s_p + s_q + keys.z

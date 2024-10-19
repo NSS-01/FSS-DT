@@ -1,5 +1,5 @@
 from NssMPC.common.network.async_tcp import *
-from NssMPC.config.configs import GE_TYPE
+import NssMPC.config.configs as cfg
 from NssMPC.crypto.aux_parameter import BooleanTriples, DICFKey, GrottoDICFKey, SigmaDICFKey, \
     AssMulTriples, ReciprocalSqrtKey, Wrap, DivKey, B2AKey, TanhKey
 from NssMPC.crypto.aux_parameter.truncation_keys.ass_trunc_aux_param import AssTruncAuxParams
@@ -20,7 +20,7 @@ class SemiHonestCS(Party):
     def __init__(self, type='server'):
         assert type in ('client', 'server'), "type must be 'secure_version' or 'server'"
         self.type = type
-        party_id = 0 if type == 'server' else 1
+        party_id = 1 if type == 'server' else 0
         super(SemiHonestCS, self).__init__(party_id)
 
         # 在Party这个抽象类里储存连接映射，Communicator只负责接收地址进行收发
@@ -72,7 +72,7 @@ class SemiHonestCS(Party):
             'PPQ': GrottoDICFKey,
             'SIGMA': SigmaDICFKey
         }
-        self.append_provider(ParamProvider(param_type=CMPMapping[GE_TYPE]))
+        self.append_provider(ParamProvider(param_type=CMPMapping[cfg.GE_TYPE]))
         self.append_provider(ParamProvider(param_type=GrottoDICFKey))  # EQUAL
         self.append_provider(ParamProvider(param_type=B2AKey))  # B2A
 

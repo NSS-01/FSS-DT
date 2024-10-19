@@ -1,3 +1,5 @@
+import time
+
 from NssMPC.common.ring.ring_tensor import RingTensor
 
 from NssMPC.config import DEBUG_LEVEL, data_type
@@ -23,5 +25,5 @@ class LookUp(object):
         u = x.__class__.rotate(y, shifts=-x_shift)
         res = (u * table).sum(-1)
         res.dtype = x.dtype
-
+        time.sleep(0.6)
         return res.reshape(shape)

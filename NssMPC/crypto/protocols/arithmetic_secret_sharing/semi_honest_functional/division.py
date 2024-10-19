@@ -26,7 +26,6 @@ def secure_div(x, y):
     y_shift = x.__class__(sigma_key.r_in, x.party) + y.flatten()
     y_shift = y_shift.restore()
     y_shift = y_shift.view(y_shape)
-
     y_minus_powers = [y_shift - (2 ** i) for i in range(1, 2 * SCALE_BIT + 1)]
     k = SigmaDICF.one_key_eval(y_minus_powers, sigma_key, x.party.party_id)
     k = b2a(k, x.party).sum(dim=0)

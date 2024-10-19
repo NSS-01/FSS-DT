@@ -507,8 +507,13 @@ class RingTensor(object):
     def any(self):
         return self.tensor.any()
 
-    def to(self, device):
-        self.tensor = self.tensor.to(device)
+    def to(self, target):
+        if target == "float" and self.dtype=='int':
+            import NssMPC.config.configs as cfg
+            self.tensor = self.tensor*cfg.float_scale
+            self.dtype="float"
+        else:
+            self.tensor = self.tensor.to(target)
         return self
 
     def cpu(self):
