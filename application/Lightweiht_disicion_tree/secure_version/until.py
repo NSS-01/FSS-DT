@@ -66,7 +66,7 @@ def path(x, tree_list, tree_indices, p, h):
         current_index = queue.pop(0)
         left = 2 * current_index + 1
         right = 2 * current_index + 2
-        if tree_list[current_index].f == -1:
+        if tree_list[current_index].m == -1:
             if left < 2 ** (h - 1) - 1:
                 queue.append(left)
             if right < 2 ** (h - 1) - 1:
@@ -76,7 +76,7 @@ def path(x, tree_list, tree_indices, p, h):
             l = np.array(left_index) - delta
             r = np.array(right_index) - delta
 
-            if x[tree_list[current_index].f]<tree_list[current_index].t:
+            if x[tree_list[current_index].m]<tree_list[current_index].t:
                 p[l.tolist()] = 1
                 p[r.tolist()] = 0
                 if left < 2 ** (h - 1) - 1:
@@ -88,6 +88,39 @@ def path(x, tree_list, tree_indices, p, h):
                     queue.append(right)
     return p
 
+
+
+import logging
+import colorlog
+
+# 创建一个日志处理器，用于文件输出
+file_handler = logging.FileHandler("pretty_binary_tree.log")
+file_formatter = logging.Formatter(
+    fmt='%(asctime)s | %(levelname)-8s | %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+file_handler.setFormatter(file_formatter)
+
+# 创建一个彩色的日志处理器，用于控制台输出
+console_handler = colorlog.StreamHandler()
+console_formatter = colorlog.ColoredFormatter(
+    fmt='%(log_color)s%(asctime)s | %(levelname)-8s | %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    log_colors={
+        'DEBUG': 'cyan',
+        'INFO': 'green',
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+        'CRITICAL': 'bold_red',
+    }
+)
+console_handler.setFormatter(console_formatter)
+
+# 获取一个日志对象，并添加处理器
+logger = logging.getLogger("../log/PrettyLogger")
+logger.setLevel(logging.DEBUG)  # 设置最低日志级别
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 # # 使用 NumPy 数组构建一个满二叉树
 # h = 5  # 树的高度

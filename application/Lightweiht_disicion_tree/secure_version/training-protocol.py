@@ -1,5 +1,7 @@
+import os.path
 import time
 
+from until import logger
 import torch
 from NssMPC.secure_model.mpc_party import SemiHonestCS
 from NssMPC.crypto.primitives import ArithmeticSecretSharing
@@ -92,20 +94,22 @@ class Tree:
 def SecureBuildTree(m0,data, thresholds, share_w: ArithmeticSecretSharing, T: list, h: int, maxinum_depth: int, ny:ArithmeticSecretSharing):
     if h in range(0, 2 ** (maxinum_depth - 1) - 1):
         share_m, share_t = SeureFindBestSplit(m0,data, share_w, thresholds,ny)
-        c = (share_m-m0)>0
+        c = (share_m-m0)>=0
         c= c.restore().convert_to_real_field()
         m = share_m.restore().convert_to_real_field()
         t = share_t.restore().convert_to_real_field()
         z = (share_w.party.party_id == c)
         T[h].m = z * m.int() - (1 - z.int())
         T[h].t = z * t - (1 - z.int())
-        if share_w.party.party_id==1:
-            print(f"T[{h}].m ={T[h].m}\n T[{h}].t={T[h].t}")
+        logger.info(f"{threading.currentThread().name}--- the {h}-node has been completed!")
+        if c:
+            b_test = (data[:,m.int()]<=t)*share_w.party.party_id
+        else:
+            b_test = (data[:,m.int()]<=t)*(1-share_w.party.party_id)
 
-        b_test = (data[:, m.int()]<=t) * share_w.party.party_id
-        b = ArithmeticSecretSharing(RingTensor.convert_to_ring(b_test), party=share_w.party)
-        wr = share_w * b
-        wl = share_w*(1-b)
+        b = ArithmeticSecretSharing(RingTensor.convert_to_ring(b_test.to(torch.int64)), party=share_w.party)
+        wl = share_w * b
+        wr = share_w*(1-b)
         SecureBuildTree(m0,data, thresholds,wl, T, 2*h+1, maxinum_depth=max_height,ny=ny)
         SecureBuildTree(m0, data, thresholds, wr, T,2*h+2, maxinum_depth=max_height, ny=ny)
     elif h in range(2 ** (maxinum_depth - 1) - 1, 2 ** maxinum_depth - 1):
@@ -113,8 +117,9 @@ def SecureBuildTree(m0,data, thresholds, share_w: ArithmeticSecretSharing, T: li
         y_sum = y_sum.squeeze(0)
         labels = thresholds[-1].view(-1)
         share_labels = ArithmeticSecretSharing(RingTensor(labels.to(torch.int64)* share_w.party.party_id), party=share_w.party)
-        _, share_y = _min_with_index(-y_sum, share_labels)
-        T[h].t = -share_y
+        _, share_y = _min_with_index(0-y_sum, share_labels)
+        logger.info(f"{threading.currentThread().name}---the {h}-leaf has been completed!")
+        T[h].t = share_y.item
         T[h].m = -2
 def SeureFindBestSplit(m0,data, share_w, thresholds,ny):
     n, m = data.shape
@@ -163,7 +168,7 @@ def setup_client(data_name, max_height):
     m0, thresholds, client_data = torch.load(file_name)
     n, m = client_data.shape
     num_class = len(thresholds[-1])
-    client_tree_list = [Tree() for _ in range(2 ** max_height)]
+    client_tree_list = [Tree() for _ in range(2 ** max_height-1)]
 
     client = SemiHonestCS(type='client')
     client.set_comparison_provider()
@@ -176,12 +181,19 @@ def setup_client(data_name, max_height):
     '''
     root_share_w = ArithmeticSecretSharing(RingTensor.zeros(size=(n,)), party=client)
     SecureBuildTree(m0,client_data, thresholds, root_share_w, client_tree_list, h=0, maxinum_depth=max_height,ny=ny)
+    if os.path.exists("../model"):
+        torch.save(client_tree_list,f"../model/{data_name}_client_model.pth")
+    else:
+        os.mkdir("../model")
+        torch.save(client_tree_list,f"../model/{data_name}_client_model.pth")
     client.close()
 
 def setup_server(data_name, max_height):
 
     file_name = f'../data/{data_name}_server_data.pth'
+    logger.info("{is loading  data set}")
     m0, thresholds, server_data = torch.load(file_name)
+    logger.info("{loading is done }")
     server_tree_list = [Tree() for _ in range(2 ** max_height-1)]
     n, m = server_data.shape
     labels = thresholds[-1].view(1, -1)
@@ -199,19 +211,23 @@ def setup_server(data_name, max_height):
     '''
     root_share_w = ArithmeticSecretSharing(RingTensor(torch.ones(n,dtype=torch.int64)), party=server)
     SecureBuildTree(m0,server_data, thresholds, root_share_w, server_tree_list, h=0, maxinum_depth=max_height,ny=ny)
+    if os.path.exists("../model"):
+        torch.save(server_tree_list,f"../model/{data_name}_server_model.pth")
+    else:
+        os.mkdir("../model")
+        torch.save(server_tree_list, f"../model/{data_name}_server_model.pth")
     server.close()
 if __name__ == '__main__':
     import threading
-    import  json
-    import os
     import NssMPC.config.configs as cfg
     cfg.GE_TYPE = "SIGMA"
-    data_name = 'mnist'
-    max_height = 4
+    data_name = 'bank_marketing'
+    max_height =4
+    logger.info(f"training DT on the data set--{data_name}")
     st = time.time()
     # Creating threads for secure_version and server
-    client_thread = threading.Thread(target=setup_client, args=(data_name, max_height),name="setup_client")
-    server_thread = threading.Thread(target=setup_server, args=(data_name, max_height),name="setup_server")
+    client_thread = threading.Thread(target=setup_client, args=(data_name, max_height),name="client")
+    server_thread = threading.Thread(target=setup_server, args=(data_name, max_height),name="server")
     # Starting threads
     client_thread.start()
     server_thread.start()
@@ -219,4 +235,4 @@ if __name__ == '__main__':
     client_thread.join()
     server_thread.join()
     et = time.time()
-    print(f"runing_time:{et - st:.2f}")
+    logger.info(f"training time  {et-st:.2f} second")

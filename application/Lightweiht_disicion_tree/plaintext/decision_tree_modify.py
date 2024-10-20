@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.tree import plot_tree
 import time
+from ucimlrepo import fetch_ucirepo
 import matplotlib.pyplot as plt
 class DecisionTreeNode:
     """A decision tree node class for binary tree"""
@@ -52,6 +53,7 @@ def build_tree(data, max_depth, depth=0):
     # print(f"depth:{depth},feature_idx:{feature_idx},threshold: {threshold}")
     # Split the dataset
     left_idx, right_idx = split_dataset(X[:, feature_idx], threshold)
+
 
 
     left_subtree = build_tree(data[left_idx, :], max_depth, depth + 1)
@@ -153,6 +155,7 @@ def split_dataset(X_column, threshold):
     """Split the dataset based on the given feature and threshold"""
     left_idx = np.argwhere(X_column <= threshold).flatten()
 
+
     right_idx = np.argwhere(X_column > threshold).flatten()
     return left_idx, right_idx
 
@@ -211,14 +214,45 @@ def predict(tree, sample):
 # selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
 # X_reduced = selector.fit_transform(X)
 # X_train, X_test, y_train, y_test = train_test_split(X_reduced, y == 0, test_size=0.2, random_state=2031)
-X_train, X_test, y_train, y_test = torch.load('../data/iris.pth')
+
+# heart_disease = fetch_ucirepo(id=45)
+# X = heart_disease.data.features
+# y = heart_disease.data.targets
+# X = X.dropna()  # Removes rows with any missing values in X
+# y = y.loc[X.index]  # Ensure y matches the cleaned X rows
+# X = X.to_numpy()
+# y = y.to_numpy()
+# num_bins = 12
+# binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+# X = binner.fit_transform(X)
+# # 使用 VarianceThreshold 移除常量特征
+# selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+# X_reduced = selector.fit_transform(X)
+# X_train, X_test, y_train, y_test = train_test_split(X_reduced, y == 0, test_size=0.2, random_state=2019)
+X_train, X_test, y_train, y_test = torch.load('../data/covertype.pth')
+
+# covertype = fetch_ucirepo(id=31)
+# X = covertype.data.features
+# y = covertype.data.targets
+# X = X.to_numpy()
+# y = y.to_numpy()
+#
+# num_bins =53
+# binner = KBinsDiscretizer(n_bins=num_bins, encode='ordinal', strategy="uniform")
+# X = binner.fit_transform(X)
+# # 使用 VarianceThreshold 移除常量特征
+#
+# selector = VarianceThreshold(threshold=0)  # 0 表示移除方差为 0 的特征，即常量特征
+# X_reduced = selector.fit_transform(X)
+# print(len(X_reduced[0]))
+# X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=1021) #1021
 # mnist = load_digits()
 # X, y = mnist.data, mnist.target
 # X_train, X_test, y_train, y_test = train_test_split(
 #     X, y, test_size=0.2, random_state=2020)
 data = np.hstack((X_train, y_train.reshape(-1, 1)))
 # Build the Decision Tree
-max_depth =8
+max_depth =4
 start = time.time()
 tree = build_tree(data, max_depth)
 end = time.time()
@@ -394,47 +428,47 @@ print("C4.5 Accuracy:", accuracy)
 
 
 
-import matplotlib.pyplot as plt
-import networkx as nx
-
-
-def draw_decision_tree(node, pos=None, level=0, width=100, loc=0, G=None):
-    if G is None:
-        G = nx.DiGraph()
-        pos = {loc: (0, 0)}
-
-    # 为当前节点添加标签
-    label = f"{node.feature_index}\n{node.threshold}" if not node.is_leaf_node() else node.value
-    G.add_node(loc, label=label)
-
-    if node.left:
-        G.add_edge(loc, 2 * loc + 1)
-        pos[2 * loc + 1] = (pos[loc][0] - width / 2 ** level, pos[loc][1] - 1)
-        draw_decision_tree(node.left, pos, level + 1, width, 2 * loc + 1, G)
-
-    if node.right:
-        G.add_edge(loc, 2 * loc + 2)
-        pos[2 * loc + 2] = (pos[loc][0] + width / 2 ** level, pos[loc][1] - 1)
-        draw_decision_tree(node.right, pos, level + 1, width, 2 * loc + 2, G)
-
-    return G, pos
-
-
-def our_plot_tree(node):
-    G, pos = draw_decision_tree(node)
-    labels = {node: G.nodes[node]['label'] for node in G.nodes}
-    nx.draw(G, pos, labels=labels, with_labels=True, node_size=1000, node_color="skyblue", font_size=10)
-
-
-# 第一棵树的绘制
-plt.figure(figsize=(20, 10))
-our_plot_tree(tree)  # 这里假设our_plot_tree是一个自定义函数
-plt.title("Decision Tree Visualization 1")
-
-# 第二棵树的绘制
-plt.figure(figsize=(20, 10))
-plot_tree(clf)  # 这里假设clf是一个决策树模型
-plt.title("Decision Tree Visualization 2")
-
-# 显示图形
-plt.show()
+# import matplotlib.pyplot as plt
+# import networkx as nx
+#
+#
+# def draw_decision_tree(node, pos=None, level=0, width=100, loc=0, G=None):
+#     if G is None:
+#         G = nx.DiGraph()
+#         pos = {loc: (0, 0)}
+#
+#     # 为当前节点添加标签
+#     label = f"{node.feature_index}\n{node.threshold}" if not node.is_leaf_node() else node.value
+#     G.add_node(loc, label=label)
+#
+#     if node.left:
+#         G.add_edge(loc, 2 * loc + 1)
+#         pos[2 * loc + 1] = (pos[loc][0] - width / 2 ** level, pos[loc][1] - 1)
+#         draw_decision_tree(node.left, pos, level + 1, width, 2 * loc + 1, G)
+#
+#     if node.right:
+#         G.add_edge(loc, 2 * loc + 2)
+#         pos[2 * loc + 2] = (pos[loc][0] + width / 2 ** level, pos[loc][1] - 1)
+#         draw_decision_tree(node.right, pos, level + 1, width, 2 * loc + 2, G)
+#
+#     return G, pos
+#
+#
+# def our_plot_tree(node):
+#     G, pos = draw_decision_tree(node)
+#     labels = {node: G.nodes[node]['label'] for node in G.nodes}
+#     nx.draw(G, pos, labels=labels, with_labels=True, node_size=1000, node_color="skyblue", font_size=10)
+#
+#
+# # 第一棵树的绘制
+# plt.figure(figsize=(20, 10))
+# our_plot_tree(tree)  # 这里假设our_plot_tree是一个自定义函数
+# plt.title("Decision Tree Visualization 1")
+#
+# # 第二棵树的绘制
+# plt.figure(figsize=(20, 10))
+# plot_tree(clf)  # 这里假设clf是一个决策树模型
+# plt.title("Decision Tree Visualization 2")
+#
+# # 显示图形
+# plt.show()
