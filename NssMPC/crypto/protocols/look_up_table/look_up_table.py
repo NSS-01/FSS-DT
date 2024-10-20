@@ -25,5 +25,5 @@ class LookUp(object):
         u = x.__class__.rotate(y, shifts=-x_shift)
         res = (u * table).sum(-1)
         res.dtype = x.dtype
-        # time.sleep(0.1)
+        time.sleep(0.1)
         return res.reshape(shape)
