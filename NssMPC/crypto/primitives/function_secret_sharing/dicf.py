@@ -64,44 +64,12 @@ class GrottoDICF:
         return ans
 
 
+"""
+The DReLU protocol in the paper "SIGMA: Secure GPT Inference with Function Secret Sharing"
+https://eprint.iacr.org/2023/1269
+"""
 
 
-class Sigma_0_1_DCF:
-    @staticmethod
-    def gen(num_of_keys):
-        return SigmaDICFKey.gen(num_of_keys)
-
-    @staticmethod
-    def eval(x_shift: RingTensor, key, party_id):
-        shape = x_shift.shape
-        x_shift = x_shift.view(-1, 1)
-        y = x_shift % (HALF_RING - 1)
-        y = y + 1
-        out = prefix_parity_query(y, key.dpf_key, party_id)
-        out = x_shift.signbit() * party_id ^ key.c.view(-1, 1) ^ out
-        return out.view(shape)
-
-    @staticmethod
-    def one_key_eval(input_list, key, party_id):
-        """
-        eval multiple inputs with one key, can be used only when the input data is the offset of the same number
-        Args:
-            input_list:
-            key:
-            party_id:
-
-        Returns:
-
-        """
-        num = len(input_list)
-        x_shift = RingTensor.stack(input_list)
-        shape = x_shift.shape
-        x_shift = x_shift.view(num, -1, 1)
-        y = x_shift % (HALF_RING - 1)
-        y = y + 1
-        out = prefix_parity_query(y, key.dpf_key, party_id)
-        out = x_shift.signbit() * party_id ^ key.c.view(-1, 1) ^ out
-        return out.view(shape)
 
 
 

@@ -1,11 +1,12 @@
 import torch
 
+from NssMPC import RingTensor
 from NssMPC.common.random import PRG
 from NssMPC.common.utils import convert_tensor
 from NssMPC.config import data_type, DEVICE, LAMBDA, HALF_RING, PRG_TYPE, BIT_LEN
 from NssMPC.crypto.aux_parameter import Parameter
 from NssMPC.crypto.aux_parameter.function_secret_sharing_keys.cw import CW, CWList
-
+from NssMPC.crypto.aux_parameter.function_secret_sharing_keys.dpf_key import DPFKey
 
 class DCFKey(Parameter):
     """
@@ -109,5 +110,34 @@ class DCFKey(Parameter):
                 convert_tensor(s_last_1)
                 - convert_tensor(s_last_0)
                 - v_a[:, 0].view(-1, 1))
+
+        return k0, k1
+
+
+class SigmaDCFKey(Parameter):
+    def __init__(self):
+        self.dpf_key = DPFKey()
+        self.c = None
+        self.r_in = None
+        self.size = 0
+
+    @staticmethod
+    def gen(num_of_keys, bit_len=BIT_LEN):
+        k0 = SigmaDCFKey()
+        k1 = SigmaDCFKey()
+
+        k0.r_in = RingTensor.random([num_of_keys], down_bound=-2 ** (bit_len - 1), upper_bound=2 ** (bit_len - 1) - 1)
+        k1.r_in = RingTensor.random([num_of_keys], down_bound=-2 ** (bit_len - 1), upper_bound=2 ** (bit_len - 1) - 1)
+        r_in = k0.r_in + k1.r_in
+        r_in.bit_len = bit_len
+
+        y1 = r_in % (HALF_RING - 1)
+        k0.dpf_key, k1.dpf_key = DPFKey.gen(num_of_keys, y1, RingTensor(1))
+        c = r_in.signbit()
+        c0 = RingTensor.random([num_of_keys], down_bound=0, upper_bound=2)
+        c1 = c ^ c0
+
+        k0.c = c0
+        k1.c = c1
 
         return k0, k1

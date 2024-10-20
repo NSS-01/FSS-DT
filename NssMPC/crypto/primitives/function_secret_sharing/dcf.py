@@ -8,9 +8,9 @@ from NssMPC.common.random.prg import PRG
 from NssMPC.common.utils import convert_tensor
 from NssMPC.config.configs import LAMBDA, DEVICE, PRG_TYPE
 from NssMPC.crypto.aux_parameter.function_secret_sharing_keys.cw import CW
-from NssMPC.crypto.aux_parameter.function_secret_sharing_keys.dcf_key import DCFKey
-
-
+from NssMPC.crypto.aux_parameter.function_secret_sharing_keys.dcf_key import DCFKey, SigmaDCFKey
+from NssMPC.crypto.primitives.function_secret_sharing.dpf import prefix_parity_query
+from NssMPC.config.configs import PRG_TYPE, HALF_RING, data_type
 class DCF:
     @staticmethod
     def gen(num_of_keys, alpha, beta):
@@ -55,3 +55,40 @@ class DCF:
 
         return RingTensor(dcf_result.view(shape), x.dtype, x.device)
 
+
+class SigmaDCF:
+    @staticmethod
+    def gen(num_of_keys):
+        return SigmaDCFKey.gen(num_of_keys)
+
+    @staticmethod
+    def eval(x_shift: RingTensor, key, party_id):
+        shape = x_shift.shape
+        x_shift = x_shift.view(-1, 1)
+        y = x_shift % (HALF_RING - 1)
+        y = y + 1
+        out = prefix_parity_query(y, key.dpf_key, party_id)
+        out = x_shift.signbit() * party_id ^ key.c.view(-1, 1) ^ out
+        return out.view(shape)
+
+    @staticmethod
+    def one_key_eval(input_list, key, party_id):
+        """
+        eval multiple inputs with one key, can be used only when the input data is the offset of the same number
+        Args:
+            input_list:
+            key:
+            party_id:
+
+        Returns:
+
+        """
+        num = len(input_list)
+        x_shift = RingTensor.stack(input_list)
+        shape = x_shift.shape
+        x_shift = x_shift.view(num, -1, 1)
+        y = x_shift % (HALF_RING - 1)
+        y = y + 1
+        out = prefix_parity_query(y, key.dpf_key, party_id)
+        out = x_shift.signbit() * party_id ^ key.c.view(-1, 1) ^ out
+        return out.view(shape)
