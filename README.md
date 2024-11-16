@@ -5,8 +5,7 @@ The code of  FSS-DT is on [application/Lightweiht_disicion_tree](application/Lig
 
 This project is a secure multi-party computation library that designs and implements privacy-preserving computation
 protocols based on arithmetic secret sharing and function secret sharing.
-It also utilizes these protocols to implement the application of privacy-preserving machine learning, specifically
-privacy-preserving neural network inference.
+It also utilizes these protocols to implement the application of privacy-preserving machine learning.
 
 ## Installation
 
